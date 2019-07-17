@@ -11,6 +11,32 @@ then
     exit 1
 fi
 
+print_usage() {
+    echo "usage: $0 [-u] [-t <theme-css-file-path>] [-n]"
+    echo "options:"
+    echo " -u   Update only"
+    echo " -t   The theme file css to install"
+    echo " -n.  Dry-run -- show what would have been done"
+}
+
+while getopts "u:t:" opt; do
+    case "$opt" in
+    h)
+        print_usage
+        exit 0
+        ;;
+    u)  update=1
+        ;;
+    t)  theme_file_path=$OPTARG
+        ;;
+    n)  dryrun=1
+        ;;
+    esac
+done
+
+shift $((OPTIND-1))
+[ "${1:-}" = "--" ] && shift
+
 THEME_FILE_NAME="dark-theme.css"
 THEME_FILE_NAME="solarized-dark.css"
 THEME_URL="https://cdn.rawgit.com/laCour/slack-night-mode/master/css/raw/black.css"
@@ -82,7 +108,12 @@ if [[ "$UPDATE_ONLY" == "false" ]]; then
         fi
 
         # Remove any existing unpacked Asar archive directory
-        rm -rf $UNPACKED_APP_ASAR_PATH
+        if [[ $dryrun ]]
+        then
+            echo "rm -rf $UNPACKED_APP_ASAR_PATH"
+        else
+            rm -rf $UNPACKED_APP_ASAR_PATH
+        fi
 
         # Unpack Asar Archive for Slack
         npx asar extract $PACKED_APP_ASAR_PATH $UNPACKED_APP_ASAR_PATH
